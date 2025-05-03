@@ -13,11 +13,21 @@ workspace {
       db = container "Database" {
         technology "DuckDB"
         description "Stores employee and purchase data"
+        tags "Database"
       }
 
       app = container "DuckDB Query Retriever App" {
         technology "Streamlit"
         description "Web-based app that allows users to ask questions about their data"
+
+        user_interface = component "User Interface" {
+          technology "Streamlit Widget"
+        }
+
+        encoder = component "Encoder" {
+          technology "Sentence Transformer"
+        }
+
       }
 
       groq = container "Generative AI" {
@@ -31,6 +41,10 @@ workspace {
     biz_user -> duckdb_query_retriever.app "Uses"
     duckdb_query_retriever.app -> duckdb_query_retriever.db "Reads data from"
     duckdb_query_retriever.app -> duckdb_query_retriever.groq "Gets summarization"
+    biz_user -> duckdb_query_retriever.app.user_interface "Writes a question/additional summarization context"
+    duckdb_query_retriever.app.user_interface -> duckdb_query_retriever.app.encoder "Sends text to encode"
+    duckdb_query_retriever.app.user_interface -> duckdb_query_retriever.groq "Sends a chat message and gets summarization"
+    duckdb_query_retriever.app.user_interface -> duckdb_query_retriever.db "Reads data from"
   }
 
   views {
@@ -45,7 +59,18 @@ workspace {
       autolayout lr
     }
 
+    component duckdb_query_retriever.app "Component" {
+      include *
+      autolayout lr
+    }
+
     theme default
+
+    styles {
+      element "Database" {
+        shape cylinder
+      }
+    }
   }
 
 }
